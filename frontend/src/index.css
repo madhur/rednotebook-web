@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+}
+
+@layer components {
+  .hashtag {
+    @apply text-red-600 font-medium;
+  }
+
+  .date-ref {
+    @apply text-blue-600 underline cursor-pointer;
+  }
+}
+
+/* RedNotebook journal entry rendered HTML */
+.journal-preview h1 { @apply text-2xl font-bold mt-4 mb-2; }
+.journal-preview h2 { @apply text-xl font-bold mt-3 mb-2; }
+.journal-preview h3 { @apply text-lg font-bold mt-2 mb-1; }
+.journal-preview h4, .journal-preview h5 { @apply font-bold mt-2 mb-1; }
+.journal-preview p { @apply mb-2 leading-relaxed; }
+.journal-preview ul { @apply list-disc list-inside mb-2 ml-4; }
+.journal-preview ol { @apply list-decimal list-inside mb-2 ml-4; }
+.journal-preview li { @apply mb-1; }
+.journal-preview pre { @apply bg-gray-100 rounded p-3 overflow-x-auto mb-2 font-mono text-sm; }
+.journal-preview code { @apply bg-gray-100 rounded px-1 font-mono text-sm; }
+.journal-preview hr { @apply border-gray-300 my-4; }
+.journal-preview strong { @apply font-bold; }
+.journal-preview em { @apply italic; }
+.journal-preview u { @apply underline; }
+.journal-preview del { @apply line-through; }
+.journal-preview a { @apply text-blue-600 underline hover:text-blue-800; }
+.journal-preview .hashtag { @apply text-red-600 font-medium; }
+
+/* CodeMirror overrides */
+.cm-editor {
+  height: 100%;
+  font-size: 14px;
+}
+.cm-scroller {
+  overflow: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
