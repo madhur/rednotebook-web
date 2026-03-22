@@ -48,7 +48,7 @@ A self-hostable web interface for [RedNotebook](https://rednotebook.app/) — th
 ### Quick start
 
 ```bash
-git clone https://github.com/yourusername/rednotebook-web.git
+git clone https://github.com/madhur/rednotebook-web.git
 cd rednotebook-web
 docker compose up -d
 ```
@@ -106,7 +106,7 @@ docker compose up -d --build
 ### Setup
 
 ```bash
-git clone https://github.com/yourusername/rednotebook-web.git
+git clone https://github.com/madhur/rednotebook-web.git
 cd rednotebook-web
 
 # Python backend
