@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
-import { ChevronLeft, ChevronRight, Search, Book, Save, CheckCircle, Sun, Moon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, Book, Save, CheckCircle, Sun, Moon, Menu, X } from 'lucide-react'
 import { useNavigationStore } from './store/navigation'
 import { useEntry, useSaveEntry } from './hooks/useEntry'
 import { Calendar } from './components/Calendar'
@@ -12,8 +12,9 @@ import { SearchModal } from './components/SearchModal'
 
 export default function App() {
   const { currentDate, view, setView, goToPrevDay, goToNextDay, goToToday } = useNavigationStore()
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [savedRecently, setSavedRecently] = useState(false)
   const [localText, setLocalText] = useState('')
   const [localCategories, setLocalCategories] = useState<Record<string, string[]>>({})
@@ -27,18 +28,21 @@ export default function App() {
   const { data: entry, isLoading } = useEntry(year, month, day)
   const { mutate: saveEntry, isPending: isSaving } = useSaveEntry()
 
-  // Sync loaded entry into local state
+  // Sync loaded entry into local state; reset transient UI state on date change
   useEffect(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     if (entry) {
       setLocalText(entry.text)
       setLocalCategories(entry.categories)
-      setIsDirty(false)
     }
+    setIsDirty(false)
+    setSavedRecently(false)
   }, [entry?.date]) // Only reset when date changes
 
   // Dark mode toggle
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }, [isDark])
 
   const handleSave = useCallback(() => {
@@ -85,11 +89,21 @@ export default function App() {
   }
 
   const formattedDate = format(currentDate, 'EEEE, MMMM d, yyyy')
+  const formattedDateShort = format(currentDate, 'MMM d, yyyy')
 
   return (
     <div className={`h-screen flex flex-col bg-gray-50 dark:bg-gray-900 ${isDark ? 'dark' : ''}`}>
       {/* Top bar */}
-      <header className="flex items-center gap-4 px-4 py-2 bg-red-700 text-white shadow-md flex-shrink-0">
+      <header className="flex items-center gap-2 px-3 py-2 bg-red-700 text-white shadow-md flex-shrink-0">
+        {/* Mobile sidebar toggle */}
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          className="md:hidden p-1.5 rounded hover:bg-red-800 transition-colors"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={20} />
+        </button>
+
         <div className="flex items-center gap-2">
           <Book size={20} />
           <span className="font-semibold text-lg tracking-tight">RedNotebook</span>
@@ -98,10 +112,11 @@ export default function App() {
         {/* Search bar */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="flex items-center gap-2 flex-1 max-w-md px-3 py-1.5 bg-red-800/60 hover:bg-red-800 rounded-md text-sm text-red-200 transition-colors"
+          className="flex items-center gap-2 flex-1 max-w-md px-3 py-1.5 bg-red-800/60 hover:bg-red-800 rounded-md text-sm text-red-200 transition-colors ml-2"
         >
           <Search size={14} />
-          <span>Search entries... (Ctrl+F)</span>
+          <span className="hidden sm:inline">Search entries...</span>
+          <span className="hidden md:inline text-red-300 text-xs">(Ctrl+F)</span>
         </button>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -116,9 +131,33 @@ export default function App() {
       </header>
 
       {/* Main area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div
+            className="absolute inset-0 z-20 bg-black/40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Left sidebar */}
-        <aside className="w-52 flex-shrink-0 flex flex-col gap-3 p-3 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+        <aside className={`
+          flex-shrink-0 flex flex-col gap-3 p-3 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
+          md:w-52 md:static md:z-auto md:translate-x-0
+          absolute top-0 left-0 h-full z-30 w-72 transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
+          {/* Mobile close button */}
+          <div className="flex items-center justify-between md:hidden mb-1">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Navigation</span>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
           <Calendar />
           <div>
             <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-2 mb-1">
@@ -140,9 +179,10 @@ export default function App() {
             </button>
             <button
               onClick={goToToday}
-              className="flex-1 text-center font-semibold text-gray-800 dark:text-gray-100 text-sm hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              className="flex-1 text-center font-semibold text-gray-800 dark:text-gray-100 text-sm hover:text-red-600 dark:hover:text-red-400 transition-colors min-w-0"
             >
-              {formattedDate}
+              <span className="hidden sm:inline">{formattedDate}</span>
+              <span className="sm:hidden">{formattedDateShort}</span>
             </button>
             <button
               onClick={goToNextDay}
