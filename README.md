@@ -8,16 +8,10 @@ A self-hostable web interface for [RedNotebook](https://rednotebook.app/) — th
 
 ## Screenshots
 
-### Desktop
-
-![Desktop view — editor](docs/screenshots/desktop-editor.png)
-![Desktop view — preview](docs/screenshots/desktop-preview.png)
-
-### Mobile
+![Desktop](docs/screenshots/desktop.png)
 
 <p align="center">
-  <img src="docs/screenshots/mobile-editor.png" width="280" alt="Mobile editor" />
-  <img src="docs/screenshots/mobile-sidebar.png" width="280" alt="Mobile sidebar" />
+  <img src="docs/screenshots/mobile.png" width="320" alt="Mobile" />
 </p>
 
 ---
