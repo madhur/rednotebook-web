@@ -182,6 +182,12 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
+## Built with AI
+
+This project was built entirely using [Claude Code](https://claude.ai/claude-code) (Anthropic's AI coding assistant). The code, architecture, README, and all associated assets were generated through an AI-assisted development session.
+
+---
+
 ## Related
 
 - [RedNotebook](https://rednotebook.app/) — the original desktop journal app by Jendrik Seipp
