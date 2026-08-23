@@ -35,7 +35,7 @@ export function Calendar() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3">
         <button
@@ -58,7 +58,7 @@ export function Calendar() {
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_HEADERS.map(h => (
-          <div key={h} className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1">
+          <div key={h} className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-1.5">
             {h}
           </div>
         ))}
@@ -82,7 +82,7 @@ export function Calendar() {
               key={dayNum}
               onClick={() => handleDayClick(date)}
               className={`
-                relative flex flex-col items-center justify-center rounded-md text-xs py-1 transition-colors
+                relative flex flex-col items-center justify-center rounded-md text-sm py-1.5 transition-colors
                 ${isSelected
                   ? 'bg-red-600 text-white font-bold'
                   : isTodayDate

@@ -3,9 +3,10 @@ import { api } from '../api'
 
 interface Props {
   text: string
+  fontSize?: number
 }
 
-export function Preview({ text }: Props) {
+export function Preview({ text, fontSize = 18 }: Props) {
   const [html, setHtml] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -37,6 +38,7 @@ export function Preview({ text }: Props) {
       )}
       <div
         className="journal-preview prose max-w-none"
+        style={{ fontSize: `${fontSize}px` }}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

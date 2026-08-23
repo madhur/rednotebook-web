@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
 
@@ -8,9 +8,16 @@ interface Props {
   value: string
   onChange: (value: string) => void
   isDark?: boolean
+  fontSize?: number
 }
 
-export function Editor({ value, onChange, isDark = false }: Props) {
+const fontSizeCompartment = new Compartment()
+
+function fontSizeTheme(size: number) {
+  return EditorView.theme({ '&': { fontSize: `${size}px` } })
+}
+
+export function Editor({ value, onChange, isDark = false, fontSize = 18 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -31,10 +38,12 @@ export function Editor({ value, onChange, isDark = false }: Props) {
               onChangeRef.current(update.state.doc.toString())
             }
           }),
+          EditorView.lineWrapping,
           EditorView.theme({
             '&': { height: '100%' },
             '.cm-scroller': { overflow: 'auto' },
           }),
+          fontSizeCompartment.of(fontSizeTheme(fontSize)),
         ],
       }),
       parent: containerRef.current,
@@ -47,6 +56,13 @@ export function Editor({ value, onChange, isDark = false }: Props) {
       viewRef.current = null
     }
   }, [isDark]) // Only recreate on theme change
+
+  // Update font size without recreating the editor
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: fontSizeCompartment.reconfigure(fontSizeTheme(fontSize)),
+    })
+  }, [fontSize])
 
   // Sync external value changes without resetting cursor
   useEffect(() => {

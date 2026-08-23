@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
-import { ChevronLeft, ChevronRight, Search, Book, Save, CheckCircle, Sun, Moon, Menu, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, Book, Save, CheckCircle, Sun, Moon, Menu, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { useNavigationStore } from './store/navigation'
 import { useEntry, useSaveEntry } from './hooks/useEntry'
 import { Calendar } from './components/Calendar'
@@ -19,7 +19,19 @@ export default function App() {
   const [localText, setLocalText] = useState('')
   const [localCategories, setLocalCategories] = useState<Record<string, string[]>>({})
   const [isDirty, setIsDirty] = useState(false)
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = localStorage.getItem('fontSize')
+    return saved ? parseInt(saved, 10) : 18
+  })
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const changeFontSize = (delta: number) => {
+    setFontSize(prev => {
+      const next = Math.min(32, Math.max(12, prev + delta))
+      localStorage.setItem('fontSize', String(next))
+      return next
+    })
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth() + 1
@@ -46,6 +58,7 @@ export default function App() {
   }, [isDark])
 
   const handleSave = useCallback(() => {
+    if (!isDirty) return
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     saveEntry(
       { year, month, day, entry: { text: localText, categories: localCategories } },
@@ -57,7 +70,7 @@ export default function App() {
         },
       }
     )
-  }, [year, month, day, localText, localCategories, saveEntry])
+  }, [year, month, day, localText, localCategories, saveEntry, isDirty])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -77,10 +90,13 @@ export default function App() {
 
   const handleTextChange = (text: string) => {
     setLocalText(text)
-    setIsDirty(true)
-    // Auto-save after 2s of inactivity
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    autoSaveTimer.current = setTimeout(() => handleSave(), 2000)
+    const hasChanged = text !== (entry?.text ?? '')
+    setIsDirty(hasChanged)
+    if (hasChanged) {
+      // Auto-save after 2s of inactivity
+      autoSaveTimer.current = setTimeout(() => handleSave(), 2000)
+    }
   }
 
   const handleTagClick = (_tag: string) => {
@@ -142,8 +158,8 @@ export default function App() {
 
         {/* Left sidebar */}
         <aside className={`
-          flex-shrink-0 flex flex-col gap-3 p-3 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
-          md:w-52 md:static md:z-auto md:translate-x-0
+          flex-shrink-0 flex flex-col gap-3 p-4 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
+          md:w-72 md:static md:z-auto md:translate-x-0
           absolute top-0 left-0 h-full z-30 w-72 transition-transform duration-200
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
@@ -179,7 +195,7 @@ export default function App() {
             </button>
             <button
               onClick={goToToday}
-              className="flex-1 text-center font-semibold text-gray-800 dark:text-gray-100 text-sm hover:text-red-600 dark:hover:text-red-400 transition-colors min-w-0"
+              className="font-semibold text-gray-800 dark:text-gray-100 text-sm hover:text-red-600 dark:hover:text-red-400 transition-colors"
             >
               <span className="hidden sm:inline">{formattedDate}</span>
               <span className="sm:hidden">{formattedDateShort}</span>
@@ -215,6 +231,27 @@ export default function App() {
               </button>
             </div>
 
+            {/* Font size controls */}
+            <div className="flex items-center gap-1 ml-2">
+              <button
+                onClick={() => changeFontSize(-2)}
+                disabled={fontSize <= 12}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-30"
+                title="Decrease font size"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <span className="text-xs text-gray-500 dark:text-gray-400 w-8 text-center">{fontSize}px</span>
+              <button
+                onClick={() => changeFontSize(2)}
+                disabled={fontSize >= 32}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-30"
+                title="Increase font size"
+              >
+                <ZoomIn size={16} />
+              </button>
+            </div>
+
             {/* Save status */}
             <div className="ml-2">
               {savedRecently ? (
@@ -243,23 +280,27 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900">
-                  {view === 'edit' ? (
-                    <Editor value={localText} onChange={handleTextChange} isDark={isDark} />
-                  ) : (
-                    <Preview text={localText} />
-                  )}
+                <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900 flex justify-center">
+                  <div className="w-full max-w-5xl h-full">
+                    {view === 'edit' ? (
+                      <Editor value={localText} onChange={handleTextChange} isDark={isDark} fontSize={fontSize} />
+                    ) : (
+                      <Preview text={localText} fontSize={fontSize} />
+                    )}
+                  </div>
                 </div>
 
                 {/* Categories panel */}
                 <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 max-h-48 overflow-y-auto flex-shrink-0">
-                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                    Tags & Categories
-                  </h3>
-                  <CategoryPanel
-                    categories={localCategories}
-                    onChange={cats => { setLocalCategories(cats); setIsDirty(true) }}
-                  />
+                  <div className="max-w-5xl mx-auto">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                      Tags & Categories
+                    </h3>
+                    <CategoryPanel
+                      categories={localCategories}
+                      onChange={cats => { setLocalCategories(cats); setIsDirty(true) }}
+                    />
+                  </div>
                 </div>
               </>
             )}

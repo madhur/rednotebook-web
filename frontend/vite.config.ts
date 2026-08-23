@@ -32,10 +32,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Cache the app shell and static assets
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        // Don't cache API calls
-        navigateFallbackDenylist: [/^\/api/],
+        // Cache static assets only — exclude html so navigations always hit the network
+        // (required for Traefik + Authentik forward-auth to intercept unauthenticated requests)
+        globPatterns: ['**/*.{js,css,svg,png,woff2}'],
+        navigateFallback: null,
       },
     }),
   ],
